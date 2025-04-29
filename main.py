@@ -3,6 +3,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from av import TG_TOKEN
+from telebot import types
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, \
     Application
 
@@ -41,13 +42,14 @@ async def start(update: Update, context: CallbackContext):
     conn.commit()
 
     await update.message.reply_text(
-        "💰 *Финансовый трекер*\n\n"
-        "Доступные команды:\n"
-        "/add_income - добавить доход\n"
-        "/add_expense - добавить расход\n"
-        "/stats - статистика\n"
-        "/report - отчет за месяц",
-        parse_mode="Markdown"
+        """💰 *Финансовый трекер*
+        
+Привет, {}! Я тестовый бот для твоих финансов
+Доступные команды:
+/add_income - добавить доход
+/add_expense - добавить расход
+/stats - статистика
+/report - отчет за месяц""".format(username)
     )
 
 
@@ -59,6 +61,16 @@ async def add_income(update: Update, context: CallbackContext):
 async def add_expense(update: Update, context: CallbackContext):
     context.user_data['waiting_for'] = 'expense_amount'
     await update.message.reply_text("Введите сумму расхода:")
+
+
+async def stats(update: Update, context: CallbackContext):
+    context.user_data['waiting_for'] = 'stats'
+    await update.message.reply_text("Ваша статистика:")
+
+
+async def report(update: Update, context: CallbackContext):
+    context.user_data['waiting_for'] = 'stats'
+    await update.message.reply_text("Отчет за месяц:")
 
 
 async def handle_amount(update: Update, context: CallbackContext):
@@ -85,6 +97,11 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_amount))
     app.add_handler(handler)
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("stats", stats))
+    app.add_handler(CommandHandler("add_income", add_income))
+    app.add_handler(CommandHandler("add_expense", add_expense))
+    app.add_handler(CommandHandler("report", report))
+
     app.run_polling()
 
 
